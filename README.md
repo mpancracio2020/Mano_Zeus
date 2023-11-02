@@ -4,7 +4,7 @@
 
 
 ---
-This repo contains all the necessary hardware and software for our Zeus' Hand. 
+This repo contains all the necessary hardware and software for our Zeus' Hand. It also contains all the information about the current status of the project. 
 
 ## Table of Contents
 
@@ -12,15 +12,18 @@ This repo contains all the necessary hardware and software for our Zeus' Hand.
 - [About](#about)
 - [Mechanics](#mechanics)
 - [Electronics](#electronics)
+- [Software](#software)
 - [Authors](#authors)
 
 ## About
 
-This project is made by the association of RoboTech from the Rey Juan Carlos University, in Madrid, Spain.
+This project is made by the association of RoboTech from the Rey Juan Carlos University, in Madrid, Spain. Association formed mainly by students of the robotics software engineering degree, although there are also telecommunications and aerospace students.
 
-The main idea behind this project is inspired on the InMoov project, but we are only going to make a simplyfied solution of the hand part described on the original project.
+The main idea behind this project is inspired on the InMoov project, but we are only going to make a simplyfied solution of the hands and arms parts described on the original project for now.
 
-Take a look to the original project:
+If enough progress is made, the objective will be expanded to the rest of the body or new ideas linked to what has already been developed will be developed, such as the method of implementing hand movement (with visual recognition or with gloves with pressure sensors).
+
+If you want take a look to the original project:
 
 - [InMoov's project](https://inmoov.fr/).
 
@@ -31,10 +34,11 @@ Take a look to the original project:
 
 <!--- <img width=400px src="Doc/images/Explode.png" alt="explode"></a> --->
 
-The hand is made out of 3D printed parts. You can find those parts as well as files for construction in the [3D model section](3D_model).
+The robot structure is made out of 3D printed parts. Anctually, you can find those parts as well as files for construction in the [3D model section](3D_model).
+
+You can find the left and right hands and arms printed and also the right bicep.
 
 And a list of the progress of impresion in the [3D Model List](Doc/3D_Model_List.md).
-
 
 
 <img width=500px src="/Doc/fig/Open_Hand.png" alt="Generic version"></a>
@@ -48,6 +52,12 @@ And a list of the progress of impresion in the [3D Model List](Doc/3D_Model_List
 <img width=500px src="images/../Doc/images/robot_noah.png" alt="Noah version"></a>
 <img width=390px src="images/../Doc/images/robot_noah2.png" alt="Noah version2"></a>
 --->
+
+## Software
+
+In the software part we have developed a code that allows the movement of one of the hands at the same time. You can find it in the [Servo Move](src/ServoM)
+
+On the other hand, we have developed hand tracking to detect the right hand and, knowing its positions, follow it and replicate its movement. You can find it in the [Hand tracking](src/handTracking)
 
 ## Electronics
 
@@ -70,6 +80,10 @@ The PCB was designed with Kicad. Take a look to the [PCB section](./noah-hardwar
 
 - [InMoov Members](https://inmoov.fr/) - Idea & Initial work# Mano-Zeus
 ### Members 
+- [Marvin Pancracio Manso](https://github.com/mpancracio2020)
+
+- [Víctor Bárcena Mena](https://github.com/vbarcena2020)
+
 - Adrián Madinabeitia ~ [madport](https://github.com/madport)
 
 - Juan Miguel Valverde Garcia
