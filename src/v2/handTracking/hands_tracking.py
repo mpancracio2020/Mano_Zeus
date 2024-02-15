@@ -42,9 +42,13 @@ PINKY_FINGER = 20
 LEFT = 0
 RIGHT = 1
 
+REFERENCE_INIT = 0
 REFERENCE_THUMB = 5
+REFERENCE_MIDDLE = 9
 REFERENCE_UPPER = 13
 REFERENCE_WRIST = 17
+
+ANGLES_FINGERS = [(4, 8, 12, 16, 20), (5, 5, 9, 13, 17), (17, 0, 0, 0, 0)]
 
 class armDetector:
     def __init__(self):
@@ -125,6 +129,19 @@ class handDetector():
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.detectionCon, self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils   
 
+    def calculate_angle(self, a, b, c):
+        a = np.array(a) # First
+        b = np.array(b) # Mid
+        c = np.array(c) # End
+        
+        radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+        angle = np.abs(radians*180.0/np.pi)
+        
+        if angle > 180.0:
+            angle = 360-angle
+        
+        return int(angle)
+    
     def findHands(self,img, draw = True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
@@ -169,61 +186,70 @@ class handDetector():
                 pixelCoordinates = self.mpDraw._normalized_to_pixel_coordinates(landmark.x, landmark.y, frameWidth, frameHeight)
                 cv2.circle(img, pixelCoordinates, RATIO_NODES, color, -1)
     
-    def getFingersPosition_basic_left(self, lmlist, position):
-        thumb, index, middle, ring, pinky, wrist = 0, 1, 2, 3, 4, 5
+    def getFingersPosition(self, lmlist, position, hand):
+        nodes = []
+        if (hand == 0):
+            nodes = [0, 1, 2, 3, 4, 5]
+            if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_THUMB].x:
+                position[nodes[0]] = 0
 
-        if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_THUMB].x:
-            position[thumb] = 0
+            if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_WRIST].x:
+                position[nodes[5]] = 0
+                if lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_THUMB].x:
+                    position[nodes[0]] = 0
+                else:
+                    position[nodes[0]] = 1
+        elif (hand == 1):
+            nodes = [6, 7, 8, 9, 10, 11]
+            if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_THUMB].x):
+                position[nodes[0]] = 0 
+
+            if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_WRIST].x):
+                position[nodes[5]] = 0
+                if (lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_THUMB].x):
+                    position[nodes[0]] = 0
+                else:
+                    position[nodes[0]] = 1  
 
         if lmlist[INDEX_FINGER].y >= lmlist[REFERENCE_UPPER].y:
-            position[index] = 0
+            position[nodes[1]] = 0
 
         if lmlist[MIDDLE_FINGER].y >= lmlist[REFERENCE_UPPER].y:
-            position[middle] = 0
+            position[nodes[2]] = 0
 
         if lmlist[RING_FINGER].y >= lmlist[REFERENCE_UPPER].y:
-            position[ring] = 0
+            position[nodes[3]] = 0
 
         if lmlist[PINKY_FINGER].y >= lmlist[REFERENCE_UPPER].y:
-            position[pinky] = 0 
-
-        if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_WRIST].x:
-            position[wrist] = 0
-
-            if lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_THUMB].x:
-                position[thumb] = 0
-            else:
-                position[thumb] = 1
+            position[nodes[4]] = 0 
 
         return position
-    
-    def getFingersPosition_basic_right(self, lmlist, position):
-        thumb, index, middle, ring, pinky, wrist = 6, 7, 8, 9, 10, 11
 
-        if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_THUMB].x):
-            position[thumb] = 0 
+    def getFingersAngles(self, lmlist, angles, hand):
+        nodes = []
+        if (hand == 0):
+            nodes = [0, 1, 2, 3, 4, 5]
+            if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_WRIST].x:
+                angles[nodes[5]] = 0
+        elif (hand == 1):
+            nodes = [6, 7, 8, 9, 10, 11]
+            if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_WRIST].x):
+                angles[nodes[5]] = 0
 
-        if (lmlist[INDEX_FINGER].y >= lmlist[REFERENCE_UPPER].y):
-            position[index] = 0 
+        for i in range(0, 5):
+            a = [lmlist[ANGLES_FINGERS[0][i]].x, lmlist[ANGLES_FINGERS[0][i]].y]
+            b = [lmlist[ANGLES_FINGERS[1][i]].x, lmlist[ANGLES_FINGERS[1][i]].y]
+            c = [lmlist[ANGLES_FINGERS[2][i]].x, lmlist[ANGLES_FINGERS[2][i]].y]
+            angles[nodes[i]] = self.calculate_angle(a,b,c)      
+        
+        if (hand == 0):
+            if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_WRIST].x:
+                angles[nodes[5]] = 0
+        elif (hand == 1):
+            if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_WRIST].x):
+                angles[nodes[5]] = 0
 
-        if (lmlist[MIDDLE_FINGER].y >= lmlist[REFERENCE_UPPER].y):
-            position[middle] = 0 
-
-        if (lmlist[RING_FINGER].y >= lmlist[REFERENCE_UPPER].y):
-            position[ring] = 0 
-
-        if (lmlist[PINKY_FINGER].y >= lmlist[REFERENCE_UPPER].y):
-            position[pinky] = 0 
-
-        if (lmlist[THUMB_FINGER].x <= lmlist[REFERENCE_WRIST].x):
-            position[wrist] = 0
-
-            if (lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_THUMB].x):
-                position[thumb] = 0
-            else:
-                position[thumb] = 1     
-
-        return position
+        return angles
 
 def arrayToString (array):
     string= INIT_CHAR
@@ -244,12 +270,15 @@ def detect_one_hand(img, hand, detector_hand, detector_arm, pose, ser):
 
     if len(lmlist) != 0:
         position = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        if (hand == LEFT):
-            position = detector_hand.getFingersPosition_basic_left(lmlist, position)
-        elif (hand == RIGHT):
-            position = detector_hand.getFingersPosition_basic_right(lmlist, position)
+        angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
 
-        out = arrayToString(position)
+        # position = detector_hand.getFingersPosition(lmlist, position, hand)       
+        # out = arrayToString(position)
+        
+        angles = detector_hand.getFingersAngles(lmlist, angles, hand)
+        out = [str(numero).zfill(3) for numero in angles]
+        out = arrayToString(out)
+
         print(out, "\n")
         
         # serialOut = bytes(out, 'utf-8')
@@ -258,7 +287,7 @@ def detect_one_hand(img, hand, detector_hand, detector_arm, pose, ser):
     # Shows the image
     cv2.imshow("Image", img)
 
-def detect_two_hands(img, hand, detector_left_hand, detector_right_hand, detector_arm, pose, ser):
+def detect_two_hands(img, detector_left_hand, detector_right_hand, detector_arm, pose, ser):
     high, width, _ = img.shape
     
     img = detector_arm.get_arms(img, pose)
@@ -272,15 +301,21 @@ def detect_two_hands(img, hand, detector_left_hand, detector_right_hand, detecto
     lmlist_right = detector_right_hand.getNodesPosition()
 
     position = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    
-    if len(lmlist_left) != 0:
-        position = detector_left_hand.getFingersPosition_basic_left(lmlist_left, position)
+    angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
 
+    if len(lmlist_left) != 0:
+        # position = detector_left_hand.getFingersPosition(lmlist_left, position, 0)
+        angles = detector_left_hand.getFingersAngles(lmlist_left, angles, 0)
     if len(lmlist_right) != 0:
-        position = detector_right_hand.getFingersPosition_basic_right(lmlist_right, position)
+        # position = detector_right_hand.getFingersPosition(lmlist_right, position, 1)
+        angles = detector_right_hand.getFingersAngles(lmlist_right, angles, 1)
 
     if len(lmlist_right) != 0 or len(lmlist_left) != 0:
-        out = arrayToString(position)
+        # out = arrayToString(position)
+        
+        out = [str(numero).zfill(3) for numero in angles]
+        out = arrayToString(out)
+        
         print(out, "\n")
         
         # serialOut = bytes(out, 'utf-8')
@@ -347,7 +382,7 @@ def main():
 
                 # Image drawing
             elif (hands == 2):
-                detect_two_hands(img, hand, detector_left_hand, detector_right_hand, detector_arm, pose, ser)
+                detect_two_hands(img, detector_left_hand, detector_right_hand, detector_arm, pose, ser)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
