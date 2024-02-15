@@ -53,20 +53,7 @@ ANGLES_FINGERS = [(4, 8, 12, 16, 20), (5, 5, 9, 13, 17), (17, 0, 0, 0, 0)]
 class armDetector:
     def __init__(self):
         self.mp_pose = mp.solutions.pose
-
-    def calculate_angle(self, a, b, c):
-        a = np.array(a) # First
-        b = np.array(b) # Mid
-        c = np.array(c) # End
-        
-        radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
-        angle = np.abs(radians*180.0/np.pi)
-        
-        if angle > 180.0:
-            angle = 360-angle
-        
-        return angle 
-
+    
     def get_arms(self, image, pose):
             left_landmark_points = []
             right_landmark_points = []
@@ -92,8 +79,8 @@ class armDetector:
                 left_wrist = [landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].y]
 
                 # Calculate angle
-                right_angle = self.calculate_angle(right_shoulder, right_elbow, right_wrist)    
-                left_angle = self.calculate_angle(left_shoulder, left_elbow, left_wrist)
+                right_angle = calculate_angle(right_shoulder, right_elbow, right_wrist)    
+                left_angle = calculate_angle(left_shoulder, left_elbow, left_wrist)
                 
                 # Draw arms
                 for landmark in USED_ARM_NODES:
@@ -129,18 +116,7 @@ class handDetector():
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.detectionCon, self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils   
 
-    def calculate_angle(self, a, b, c):
-        a = np.array(a) # First
-        b = np.array(b) # Mid
-        c = np.array(c) # End
-        
-        radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
-        angle = np.abs(radians*180.0/np.pi)
-        
-        if angle > 180.0:
-            angle = 360-angle
-        
-        return int(angle)
+    
     
     def findHands(self,img, draw = True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -240,7 +216,7 @@ class handDetector():
             a = [lmlist[ANGLES_FINGERS[0][i]].x, lmlist[ANGLES_FINGERS[0][i]].y]
             b = [lmlist[ANGLES_FINGERS[1][i]].x, lmlist[ANGLES_FINGERS[1][i]].y]
             c = [lmlist[ANGLES_FINGERS[2][i]].x, lmlist[ANGLES_FINGERS[2][i]].y]
-            angles[nodes[i]] = self.calculate_angle(a,b,c)      
+            angles[nodes[i]] = calculate_angle(a,b,c)      
         
         if (hand == 0):
             if lmlist[THUMB_FINGER].x >= lmlist[REFERENCE_WRIST].x:
@@ -250,6 +226,19 @@ class handDetector():
                 angles[nodes[5]] = 0
 
         return angles
+    
+def calculate_angle(a, b, c):
+        a = np.array(a) # First
+        b = np.array(b) # Mid
+        c = np.array(c) # End
+        
+        radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+        angle = np.abs(radians*180.0/np.pi)
+        
+        if angle > 180.0:
+            angle = 360-angle
+        
+        return int(angle)
 
 def arrayToString (array):
     string= INIT_CHAR
