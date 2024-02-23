@@ -83,5 +83,5 @@ The PCB was designed with Kicad. Take a look to the [PCB section](./noah-hardwar
 - [Marvin Pancracio Manso](https://github.com/mpancracio2020)
 
 - [Víctor Bárcena Mena](https://github.com/vbarcena2020)
-
-- Adrián Madinabeitia ~ [madport](https://github.com/madport)
+ 
+- [Adrián Madinabeitia](https://github.com/madport)
