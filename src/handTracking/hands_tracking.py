@@ -252,8 +252,8 @@ def detect_one_hand(img, hand, detector_hand, detector_arm, pose, ser):
         out = arrayToString(position)
         print(out, "\n")
         
-        # serialOut = bytes(out, 'utf-8')
-        # ser.write(serialOut)
+        serialOut = bytes(out, 'utf-8')
+        ser.write(serialOut)
     
     # Shows the image
     cv2.imshow("Image", img)
@@ -283,8 +283,8 @@ def detect_two_hands(img, hand, detector_left_hand, detector_right_hand, detecto
         out = arrayToString(position)
         print(out, "\n")
         
-        # serialOut = bytes(out, 'utf-8')
-        # ser.write(serialOut)
+        serialOut = bytes(out, 'utf-8')
+        ser.write(serialOut)
     
     # Shows the images
     img = cv2.hconcat([img_right, img_left])
@@ -323,16 +323,16 @@ def main():
     detector_right_hand = handDetector()
     detector_arm = armDetector()
     
-    ser = 0  # Only used to try the tracking without arduino
+    # ser = 0  # Only used to try the tracking without arduino
     
-    # ser = serial.Serial(
-    #     port=PORT,
-    #     baudrate=SERIALBEGIN,
-    #     parity=serial.PARITY_NONE,
-    #     stopbits=serial.STOPBITS_ONE,
-    #     bytesize=serial.EIGHTBITS,
-    #     timeout=1
-    # )
+    ser = serial.Serial(
+        port=PORT,
+        baudrate=SERIALBEGIN,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1
+    )
     
     with detector_arm.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
 

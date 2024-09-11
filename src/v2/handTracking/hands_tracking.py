@@ -7,11 +7,11 @@
 ##                                                                                          ##
 ## You have to select how many hands you want and if it is only one wich one example        ##
 ##                                                                                          ##
-## Usage: python3 hands_tracking --n 2            # detect two hands                        ##
+## Usage: python3 hands_tracking.py --n 2            # detect two hands                     ##
 ##                                                                                          ##
-## Usage: python3 hands_tracking --n 1 --hand 0   # detect left hand                        ##
+## Usage: python3 hands_tracking.py --n 1 --hand 0   # detect left hand                     ##
 ##                                                                                          ##
-## Usage: python3 hands_tracking --n 1 --hand 1   # detect right hand                       ##
+## Usage: python3 hands_tracking.py --n 1 --hand 1   # detect right hand                    ##
 ##                                                                                          ##
 ##############################################################################################
 
@@ -261,12 +261,12 @@ def detect_one_hand(img, hand, detector_hand, detector_arm, pose, ser):
         position = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
 
-        # position = detector_hand.getFingersPosition(lmlist, position, hand)       
-        # out = arrayToString(position)
+        position = detector_hand.getFingersPosition(lmlist, position, hand)       
+        out = arrayToString(position)
         
-        angles = detector_hand.getFingersAngles(lmlist, angles, hand)
-        out = [str(numero).zfill(3) for numero in angles]
-        out = arrayToString(out)
+        # angles = detector_hand.getFingersAngles(lmlist, angles, hand)
+        # out = [str(numero).zfill(3) for numero in angles]
+        # out = arrayToString(out)
 
         print(out, "\n")
         
@@ -293,23 +293,23 @@ def detect_two_hands(img, detector_left_hand, detector_right_hand, detector_arm,
     angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
 
     if len(lmlist_left) != 0:
-        # position = detector_left_hand.getFingersPosition(lmlist_left, position, 0)
-        angles = detector_left_hand.getFingersAngles(lmlist_left, angles, 0)
+        position = detector_left_hand.getFingersPosition(lmlist_left, position, 0)
+        # angles = detector_left_hand.getFingersAngles(lmlist_left, angles, 0)
     if len(lmlist_right) != 0:
-        # position = detector_right_hand.getFingersPosition(lmlist_right, position, 1)
-        angles = detector_right_hand.getFingersAngles(lmlist_right, angles, 1)
+        position = detector_right_hand.getFingersPosition(lmlist_right, position, 1)
+        # angles = detector_right_hand.getFingersAngles(lmlist_right, angles, 1)
 
     if len(lmlist_right) != 0 or len(lmlist_left) != 0:
-        # out = arrayToString(position)
+        out = arrayToString(position)
         
-        out = [str(numero).zfill(3) for numero in angles]
-        out = arrayToString(out)
+        # out = [str(numero).zfill(3) for numero in angles]
+        # out = arrayToString(out)
         
         print(out, "\n")
         
         # serialOut = bytes(out, 'utf-8')
         # ser.write(serialOut)
-    
+        
     # Shows the images
     img = cv2.hconcat([img_right, img_left])
 

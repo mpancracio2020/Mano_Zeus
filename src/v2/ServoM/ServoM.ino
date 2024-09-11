@@ -10,8 +10,8 @@ enum
 {
   NUMSERVOSHAND = 6,
   NUMHANDS = 2,
-  NUMARMS = 0,
-  NUMINVALUES = (NUMSERVOSHAND*NUMHANDS+NUMARMS)*3,
+  NUMARMS = 2,
+  NUMINVALUES = (NUMSERVOSHAND*NUMHANDS+NUMARMS),
   DIGITSPERVAL = 3,
 };
 
@@ -68,7 +68,6 @@ void receiveData()
   while(Serial.available())
   {
     char c = Serial.read();
-
     if (c=='$') {counterStart = true; }
     
     if (counterStart)
@@ -83,7 +82,9 @@ void receiveData()
         for (int i = 0; i < NUMINVALUES ; i++){
           int num = (i*DIGITSPERVAL) + 1;
           valsIn[i] = recivedString.substring(num,num + DIGITSPERVAL).toInt();
+          
         }
+        Serial.println();
         recivedString = "";
         counter = 0;
         counterStart = false;
@@ -96,7 +97,6 @@ void receiveData()
 void loop() 
 {
   receiveData();
-
   for (int i = 0; i < NUMSERVOSHAND; i++ ) {
     lservos[i].goTo(valsIn[i]);
     rservos[i].goTo(valsIn[i+NUMSERVOSHAND]);
@@ -105,13 +105,13 @@ void loop()
   // rarm.goTo(valsIn[NUMSERVOSHAND*2+1]);
 
 
-  // ------ left_hand positions -------
+  // // ------ left_hand positions -------
   // for (int i = 0; i < NUMINVALUES; ++i) {
   //   if (valsIn[i] == 1) {lservos[i].goTo(180);} 
   //   else {lservos[i].goTo(0);}
   // }
 
-  // ------  right_hand positions -------
+  // // ------  right_hand positions -------
   // for (int i = 6; i < NUMINVALUES*2; ++i) {
   //   if (valsIn[i + 6] == 1) {rservos[i].goTo(180);} 
   //   else {rservos[i].goTo(0);}
