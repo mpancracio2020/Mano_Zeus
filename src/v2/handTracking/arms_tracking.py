@@ -7,9 +7,9 @@
 ##                                                                                          ##
 ## You have to select how many hands you want and if it is only one wich one example        ##
 ##                                                                                          ##
-## Usage: python3 hands_tracking --n 2            # detect two hands                        ##
+## Usage: python3 arms_tracking.py --n 2            # detect two hands                      ##
 ##                                                                                          ##
-## Usage: python3 hands_tracking --n 1            # detect one hand                         ##
+## Usage: python3 arms_tracking.py --n 1            # detect one hand                       ##
 ##                                                                                          ##
 ##############################################################################################
 
@@ -42,6 +42,7 @@ RIGHT = 1
 
 LEFTSTRING = "Left"
 RIGHTSTRING = "Right"
+NAMES = ["Thumb:  ", "Index:  ", "Middle: ", "Ring:   ", "Pinky:  ", "Wrist:  ", "Elbow:  "]
 
 REFERENCE_INIT = 0
 REFERENCE_THUMB = 5
@@ -120,15 +121,15 @@ class handDetector():
 
     
     
-    def findHands(self,img, draw = True):
+    def findHands(self,img, img_2, draw = True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
 
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
                 if draw:
-                    self.mpDraw.draw_landmarks(img, handLms, self.mpHands.HAND_CONNECTIONS)
-        return img
+                    self.mpDraw.draw_landmarks(img_2, handLms, self.mpHands.HAND_CONNECTIONS)
+        return img_2
 
     def getNodesPosition(self):
 
@@ -246,10 +247,27 @@ def usage_error():
     print("Usage: python3 hands_tacking.py --n <num_hands> (1-2)")
     sys.exit(1)
 
-def detect_hand(img, hand, detector_hand, detector_arm, pose, ser):
+def print_angles(angles):
+
+    print("\nLeft: ")
+
+    for i in range(0, 6):
+        print(f"  ", NAMES[i], angles[i])
+
+    print(f"  ", NAMES[6], angles[12])
+    
+    print("\nRight: ")
+
+    for i in range(6, 12):
+        print(f"  ", NAMES[i-6], angles[i])
+
+    print(f"  ", NAMES[6], angles[13])
+
+
+def detect_hand(img, detector_hand, detector_arm, pose, ser):
     angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
-    img, angles = detector_arm.get_arms(img, pose, angles)
-    img = detector_hand.findHands(img)  # Draws all the nodes and lines
+    img_2, angles = detector_arm.get_arms(img, pose, angles)
+    img = detector_hand.findHands(img, img_2)  # Draws all the nodes and lines
     detector_hand.showFps(img)
     lmlist, typelist = detector_hand.getNodesPosition()
 
@@ -257,13 +275,15 @@ def detect_hand(img, hand, detector_hand, detector_arm, pose, ser):
 
         angles = detector_hand.getFingersAngles(lmlist, typelist, angles)
 
-    out = [str(numero).zfill(3) for numero in angles]
-    out = arrayToString(out)
+    
+        out = [str(numero).zfill(3) for numero in angles]
+        out = arrayToString(out)
 
-    print(out, "\n")
+        # print(out, "\n")
+        print_angles(angles)
 
-    # serialOut = bytes(out, 'utf-8')
-    # ser.write(serialOut)
+        # serialOut = bytes(out, 'utf-8')
+        # ser.write(serialOut)
     
     # Shows the image
     cv2.imshow("Image", img)
@@ -303,7 +323,7 @@ def main():
         while True:
             success, img = cap.read()
        
-            detect_hand(img, hand, detector_hand, detector_arm, pose, ser)
+            detect_hand(img, detector_hand, detector_arm, pose, ser)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
            
