@@ -64,6 +64,7 @@ traces = False
 arms = True
 mode = 0
 root = tk.Tk()
+root2 = tk.Tk()
 
 
 class Interface:
@@ -100,39 +101,6 @@ class Interface:
         self.button4 = tk.Button(self.root, text="Mode 4: MANUAL", command=self.button_mode4)
         self.button4.pack(side="top", pady=5)
 
-        self.label_manual = tk.Label(self.root, text = "MANUAL MODE")
-        self.label_manual.config(font =("Courier", 20, "bold"))
-        self.label_manual.pack(side="top", pady= 5)
-
-        self.buttonmove = tk.Button(self.root, text="MOVE", command=self.button_move)
-        self.buttonmove.pack(side="top", pady=5)
-
-        self.slider_frame = tk.Frame(self.root)
-        self.slider_frame.pack()
-
-        left_label = tk.Label(self.slider_frame, text="LEFT")
-        left_label.grid(row=0, column=1)
-        
-        right_label = tk.Label(self.slider_frame, text="RIGHT")
-        right_label.grid(row=0, column=2)
-
-        # Crear 12 sliders y organizarlos en dos columnas de 6 dentro del frame
-        self.sliders = []
-        for i in range(12):
-            if i < 6:
-                # Colocar las etiquetas con números a la izquierda de los sliders
-                tk.Label(self.slider_frame, text=str(NAMES[i])).grid(row=i + 1, column=0)
-
-            slider = tk.Scale(self.slider_frame, from_=0, to=180, orient=tk.HORIZONTAL)
-            slider.set(180)  # Establecer valor inicial en 180
-            self.sliders.append(slider)
-            # Colocarlos en una cuadrícula: 6 filas y 2 columnas dentro del frame
-            slider.grid(row=(i % 6) + 1, column=(i // 6) + 1)
-
-        self.label_manual = tk.Label(self.root, text = "OTHERS")
-        self.label_manual.config(font =("Courier", 20, "bold"))
-        self.label_manual.pack(side="top", pady= 5)
-
         self.buttontraces = tk.Button(self.root, text="Show/hide traces", command=self.button_traces)
         self.buttontraces.pack(side="top", pady=5)
 
@@ -141,17 +109,6 @@ class Interface:
 
         self.buttonexit = tk.Button(self.root, text="EXIT", command=self.button_exit)
         self.buttonexit.pack(side="top", pady=5)
-
-    def button_move(self):
-        global mode, manualangles
-        if mode == symbols.MANUAL_MODE:
-            values = [slider.get() for slider in self.sliders]
-            values.append(180)
-            values.append(180)
-            print(f"Valores actuales de los sliders: {values}")
-            manualangles = values
-        else:
-            print("Manual mode not active")
 
     def update_images(self, img1, img2):    
         img1_rgb = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
@@ -175,19 +132,19 @@ class Interface:
 
     def button_mode1(self):
         global mode
-        mode = 0
+        mode = symbols.SYMBOLS_MODE
 
     def button_mode2(self):
         global mode
-        mode = 1
+        mode = symbols.MOVE_MODE
 
     def button_mode3(self):
         global mode
-        mode = 2
+        mode = symbols.FACE_MODE
 
     def button_mode4(self):
         global mode
-        mode = 3
+        mode = symbols.MANUAL_MODE
     
     def button_traces(self):
         global traces
@@ -199,6 +156,55 @@ class Interface:
 
     def button_exit(self):
         root.quit()
+
+class ManualInterface:
+    def __init__(self, root2):
+        self.root = root2
+        self.root.title("Manual")
+
+        self.label_manual = tk.Label(self.root, text = "MANUAL MODE")
+        self.label_manual.config(font =("Courier", 20, "bold"))
+        self.label_manual.pack(side="top", pady= 5)
+
+        # Buttons
+        self.buttonmove = tk.Button(self.root, text="Move", command=self.button_move)
+        self.buttonmove.pack(side="top", pady=5)
+
+        self.slider_frame = tk.Frame(self.root)
+        self.slider_frame.pack()  # Aquí usamos pack para el Frame contenedor
+
+        left_label = tk.Label(self.slider_frame, text="Left")
+        left_label.grid(row=0, column=1)
+        
+        right_label = tk.Label(self.slider_frame, text="Right")
+        right_label.grid(row=0, column=2)
+
+        # Crear 12 sliders y organizarlos en dos columnas de 6 dentro del frame
+        self.sliders = []
+        for i in range(12):
+            if i < 6:
+                # Colocar las etiquetas con números a la izquierda de los sliders
+                tk.Label(self.slider_frame, text=str(NAMES[i])).grid(row=i + 1, column=0)
+
+            slider = tk.Scale(self.slider_frame, from_=0, to=180, orient=tk.HORIZONTAL)
+            slider.set(180)  # Establecer valor inicial en 180
+            self.sliders.append(slider)
+            # Colocarlos en una cuadrícula: 6 filas y 2 columnas dentro del frame
+            slider.grid(row=(i % 6) + 1, column=(i // 6) + 1)
+
+        
+
+    def button_move(self):
+        global mode, manualangles
+        if mode == symbols.MANUAL:
+            values = [slider.get() for slider in self.sliders]
+            values.append(180)
+            values.append(180)
+            print(f"Valores actuales de los sliders: {values}")
+            manualangles = values
+        else:
+            print("Manual mode not active")
+
 
 class faceDetector:
     def __init__(self):
@@ -465,7 +471,7 @@ def show_hands(angles, image, color):
 
     return image
 
-def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app):
+def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app, manual_app):
     global mode, manualangles
     angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
     image = cv2.imread('hands.jpg') 
@@ -493,8 +499,8 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
                 print_angles(angles)
             image = show_hands(angles, image, color=(0, 255, 0))
 
-            serialOut = bytes(out, 'utf-8')
-            ser.write(serialOut)
+            # serialOut = bytes(out, 'utf-8')
+            # ser.write(serialOut)
         elif mode == symbols.SYMBOLS_MODE:
             image = symbols.print_symbol(left_status, right_status, traces)
             image = cv2.flip(image,1)
@@ -519,11 +525,14 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
         out = [str(numero).zfill(3) for numero in manualangles]
         out = arrayToString(out)
 
-        serialOut = bytes(out, 'utf-8')
-        ser.write(serialOut)
+        # serialOut = bytes(out, 'utf-8')
+        # ser.write(serialOut)
 
     if mode == symbols.FACE_MODE:
         img = detector_face.get_face(img, pose)
+
+        # serialOut = bytes(out, 'utf-8')
+        # ser.write(serialOut)
 
     # Shows the image
     # cv2.imshow("Image", img)
@@ -532,15 +541,15 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
     app.update_images(img,image)
 
 
-def update_frame(cap, detector_hand, detector_arm, detector_face, pose, ser, app, root):
+def update_frame(cap, detector_hand, detector_arm, detector_face, pose, ser, app, manual_app, root):
     global mode
 
     success, img = cap.read()
 
     if success:
-        detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
+        detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app, manual_app)
 
-    root.after(10, update_frame, cap, detector_hand, detector_arm, detector_face, pose, ser, app, root)
+    root.after(10, update_frame, cap, detector_hand, detector_arm, detector_face, pose, ser, app, manual_app, root)
 
 def main():
     if len(sys.argv) < 3 or len(sys.argv) > 3:
@@ -562,19 +571,20 @@ def main():
 
     ser = 0  # Only used to try the tracking without arduino
     
-    ser = serial.Serial(
-        port=PORT,
-        baudrate=SERIALBEGIN,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        timeout=1
-    )
+    # ser = serial.Serial(
+    #     port=PORT,
+    #     baudrate=SERIALBEGIN,
+    #     parity=serial.PARITY_NONE,
+    #     stopbits=serial.STOPBITS_ONE,
+    #     bytesize=serial.EIGHTBITS,
+    #     timeout=1
+    # )
 
     app = Interface(root)
+    manual_app = ManualInterface(root2)
 
     with detector_arm.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-        root.after(0, update_frame, cap, detector_hand, detector_arm, detector_face, pose, ser, app, root)
+        root.after(0, update_frame, cap, detector_hand, detector_arm, detector_face, pose, ser, app, manual_app, root)
 
         root.mainloop()
 

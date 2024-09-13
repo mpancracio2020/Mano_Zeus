@@ -84,6 +84,10 @@ void receiveData()
           valsIn[i] = recivedString.substring(num,num + DIGITSPERVAL).toInt();
           
         }
+        for (int i = 0; i < NUMINVALUES ; i++) {
+          Serial.print(valsIn[i]);
+          Serial.print(",");
+        }
         Serial.println();
         recivedString = "";
         counter = 0;
