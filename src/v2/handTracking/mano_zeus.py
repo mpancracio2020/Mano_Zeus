@@ -69,7 +69,7 @@ root = tk.Tk()
 class Interface:
     def __init__(self, root):
         self.root = root
-        self.root.title("No")
+        self.root.title("Interface Mano Zeus")
 
         # Create two areas to show images
         self.img_label1 = tk.Label(self.root)
@@ -123,7 +123,7 @@ class Interface:
                 # Colocar las etiquetas con números a la izquierda de los sliders
                 tk.Label(self.slider_frame, text=str(NAMES[i])).grid(row=i + 1, column=0)
 
-            slider = tk.Scale(self.slider_frame, from_=0, to=180, orient=tk.HORIZONTAL)
+            slider = tk.Scale(self.slider_frame, from_=0, to=180, orient=tk.HORIZONTAL, troughcolor="red")
             slider.set(180)  # Establecer valor inicial en 180
             self.sliders.append(slider)
             # Colocarlos en una cuadrícula: 6 filas y 2 columnas dentro del frame
@@ -152,6 +152,21 @@ class Interface:
             manualangles = values
         else:
             print("Manual mode not active")
+
+    def update_sliders(self):
+        if mode == symbols.MANUAL_MODE:
+            i = 0
+            for slider in self.sliders:
+                if slider.get() == manualangles[i]:
+                    slider.config(troughcolor="green")
+                else: 
+                    slider.config(troughcolor="yellow")
+                i = i+1
+        else:
+            for slider in self.sliders:
+                slider.config(troughcolor="red")
+        self.root.update_idletasks()
+
 
     def update_images(self, img1, img2):    
         img1_rgb = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
@@ -264,13 +279,11 @@ class armDetector:
             for landmark in USED_ARM_NODES:
                 if (landmark % 2 == 0):
                     right_landmark_points.append((int(landmarks[landmark].x * image.shape[1]), int(landmarks[landmark].y * image.shape[0])))
-                    if arms:
-                        cv2.circle(image, right_landmark_points[i], 5, COLOR_USED, -1)
+                    cv2.circle(image, right_landmark_points[i], 5, COLOR_USED, -1)
                     i += 1
                 else:
                     left_landmark_points.append((int(landmarks[landmark].x * image.shape[1]), int(landmarks[landmark].y * image.shape[0])))
-                    if arms:
-                        cv2.circle(image, left_landmark_points[j], 5, COLOR_USED, -1)
+                    cv2.circle(image, left_landmark_points[j], 5, COLOR_USED, -1)
                     j += 1
             
             if arms:
@@ -439,7 +452,6 @@ def print_angles(angles):
 
     print(f"  ", NAMES[6], angles[13])
 
-
 def get_symbol(angles):
     left_status = [1, 1, 1, 1, 1, 1, 1]
     right_status = [1, 1, 1, 1, 1, 1, 1]
@@ -470,41 +482,51 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
     angles = [180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180]
     image = cv2.imread('hands.jpg') 
     image = cv2.flip(image,1)
+    img_2 = img
+    if arms:
+        img_2, angles = detector_arm.get_arms(img, pose, angles)
 
-    img_2, angles = detector_arm.get_arms(img, pose, angles)
-    img = detector_hand.findHands(img, img_2)  # Draws all the nodes and lines
+    if mode != symbols.MANUAL_MODE:
+        img = detector_hand.findHands(img, img_2)  # Draws all the nodes and lines
     img = cv2.flip(img,1)
 
     detector_hand.showFps(img)
-    lmlist, typelist = detector_hand.getNodesPosition()
+    if mode != symbols.MANUAL_MODE:
+        lmlist, typelist = detector_hand.getNodesPosition()
 
-    if len(lmlist) and len(typelist) != 0:
-        angles = detector_hand.getFingersAngles(lmlist, typelist, angles)
-    
-        out = [str(numero).zfill(3) for numero in angles]
+        if len(lmlist) and len(typelist) != 0:
+            angles = detector_hand.getFingersAngles(lmlist, typelist, angles)
+        
+            out = [str(numero).zfill(3) for numero in angles]
+            out = arrayToString(out)
+
+            # print(out, "\n")
+            left_status, right_status = get_symbol(angles)
+            mode = symbols.change_mode(left_status, right_status, mode)
+
+            if mode == symbols.MOVE_MODE:
+                if traces:
+                    print_angles(angles)
+                image = show_hands(angles, image, color=(0, 255, 0))
+                if traces:
+                    print("\n-----------------------------------------------------------------------\n")
+                # serialOut = bytes(out, 'utf-8')
+                # ser.write(serialOut)
+            elif mode == symbols.SYMBOLS_MODE:
+                image = symbols.get_symbols(left_status, right_status)
+                image = cv2.flip(image,1)
+                image = show_hands(angles, image, color=(0, 0, 255))
+            elif mode == symbols.FACE_MODE:
+                image = show_hands(angles, image, color=(0, 0, 255))
+
+            
+
+    elif mode == symbols.MANUAL_MODE:
+        image = show_hands(manualangles, image, color=(0, 255, 0))
+        out = [str(numero).zfill(3) for numero in manualangles]
         out = arrayToString(out)
-
-        # print(out, "\n")
-        left_status, right_status = get_symbol(angles)
-        mode = symbols.change_mode(left_status, right_status, mode)
-
-        if mode == symbols.MOVE_MODE:
-            if traces:
-                print_angles(angles)
-            image = show_hands(angles, image, color=(0, 255, 0))
-
-            serialOut = bytes(out, 'utf-8')
-            ser.write(serialOut)
-        elif mode == symbols.SYMBOLS_MODE:
-            image = symbols.print_symbol(left_status, right_status, traces)
-            image = cv2.flip(image,1)
-            image = show_hands(angles, image, color=(0, 0, 255))
-
-        elif mode == symbols.FACE_MODE:
-            image = show_hands(angles, image, color=(0, 0, 255))
-
-        if traces:
-            print("\n-----------------------------------------------------------------------\n")
+        # serialOut = bytes(out, 'utf-8')
+        # ser.write(serialOut)
 
     if mode == symbols.MOVE_MODE or mode == symbols.MANUAL_MODE:
         cv2.putText(image, "ON", (290, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
@@ -514,14 +536,6 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
     cv2.putText(image, "LEFT", (120, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
     cv2.putText(image, "RIGHT", (430, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-    if mode == symbols.MANUAL_MODE:
-        image = show_hands(manualangles, image, color=(0, 255, 0))
-        out = [str(numero).zfill(3) for numero in manualangles]
-        out = arrayToString(out)
-
-        serialOut = bytes(out, 'utf-8')
-        ser.write(serialOut)
-
     if mode == symbols.FACE_MODE:
         img = detector_face.get_face(img, pose)
 
@@ -530,7 +544,7 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
     # cv2.imshow("hands", image)
     app.update_text()
     app.update_images(img,image)
-
+    app.update_sliders()
 
 def update_frame(cap, detector_hand, detector_arm, detector_face, pose, ser, app, root):
     global mode
@@ -562,14 +576,14 @@ def main():
 
     ser = 0  # Only used to try the tracking without arduino
     
-    ser = serial.Serial(
-        port=PORT,
-        baudrate=SERIALBEGIN,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        timeout=1
-    )
+    # ser = serial.Serial(
+    #     port=PORT,
+    #     baudrate=SERIALBEGIN,
+    #     parity=serial.PARITY_NONE,
+    #     stopbits=serial.STOPBITS_ONE,
+    #     bytesize=serial.EIGHTBITS,
+    #     timeout=1
+    # )
 
     app = Interface(root)
 
