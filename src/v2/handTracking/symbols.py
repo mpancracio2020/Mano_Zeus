@@ -16,45 +16,33 @@ GOOD = [1, 0, 0, 0, 0, 0, 1]
 INVITA = [1, 0, 0, 0, 1, 0, 1]
 TEMPLARIOS = [0, 1, 0, 0, 1, 0, 1]
 
-def symbol(status, hand, traces):
+def symbol(status, hand):
     if status == PEACE:
-        if traces:
-            print("PEACE")
         if hand == 1:
             image = cv2.imread('symbols/peace1.jpeg') 
         else:
             image = cv2.imread('symbols/peace2.jpeg') 
     elif status == METAL:
-        if traces:
-            print("METAL")
         if hand == 1:
             image = cv2.imread('symbols/metal1.jpeg') 
         else:
             image = cv2.imread('symbols/metal2.jpeg') 
     elif status == FUCK:
-        if traces:
-            print("****")
         if hand == 1:
             image = cv2.imread('symbols/fuck1.jpeg') 
         else:
             image = cv2.imread('symbols/fuck2.jpeg') 
     elif status == GOOD:
-        if traces:
-            print("GOOD :)")
         if hand == 1:
             image = cv2.imread('symbols/good1.jpeg') 
         else:
             image = cv2.imread('symbols/good2.jpeg') 
     elif status == INVITA:
-        if traces:
-            print("INVITA")
         if hand == 1:
             image = cv2.imread('symbols/invita1.jpeg') 
         else:
             image = cv2.imread('symbols/invita2.jpeg') 
     elif status == TEMPLARIOS:
-        if traces:
-            print("TEMPLARIOS")
         if hand == 1:
             image = cv2.imread('symbols/templarios1.jpeg') 
         else:
@@ -67,14 +55,9 @@ def symbol(status, hand, traces):
 
     return image
 
-def print_symbol(left_status, right_status, traces):
-    if traces:
-        print("Left hand symbol: ")
-    img2 = symbol(left_status, hand=2, traces=traces)
-
-    if traces:
-        print("Right hand symbol: ")
-    img1 = symbol(right_status, hand=1, traces=traces)
+def get_symbols(left_status, right_status):
+    img2 = symbol(left_status, hand=2)
+    img1 = symbol(right_status, hand=1)
     
     image = np.hstack((img1, img2))
 
