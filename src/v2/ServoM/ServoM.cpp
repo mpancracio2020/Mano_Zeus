@@ -31,6 +31,8 @@ void ServoM::Forward()
       if (millis() <= (TACEL_ * STEP_) + timef_){ acelerated_ = true; }
     }
   }
+  Serial.print("FORW:");
+  Serial.println(pos_);
 }
 
 void ServoM::Backward()
@@ -45,6 +47,8 @@ void ServoM::Backward()
       if (millis() <= (TACEL_ * STEP_) + timef_){ acelerated_ = true; }
     }
   }
+  Serial.print("BACK:");
+  Serial.println(pos_);
 }
 
 void ServoM::Stop(){ this->write(STOP_); acelerated_ = false; }
@@ -87,12 +91,68 @@ void ServoM::turn(double grades)
     target_ = 0;
     turning_ = false;
   }
+  Serial.print("TURN:");
+  Serial.println(pos_);
 }
 
-void ServoM::goTo(double grades)
-{
-  grades -= pos_;
-  if (turning_){ grades = 0; }
-  
-  turn(grades);
+int currentPos = 180;    // Variable que representa la posición actual estimada del servo (en grados)
+int targetPos = 0;
+int speedLeft = 80;    // Velocidad para rotación hacia la izquierda (< 90)
+int speedRight = 100;  // Velocidad para rotación hacia la derecha (> 90)
+int stopSpeed = 90;    // Velocidad para detener el servo
+
+unsigned long moveTime;  // Tiempo estimado para moverse
+
+unsigned long previousMillis = 0;  // Tiempo previo en que se ejecutó la última acción
+unsigned long moveInterval = 0;    // Intervalo de tiempo calculado para el movimiento
+
+bool isMoving = false;
+
+
+// Función para estimar el tiempo de movimiento (ajusta la fórmula según tu sistema)
+unsigned long ServoM::estimateMoveTime(int start, int end) {
+  int angleDifference = abs(end - start);
+  return map(angleDifference, 0, 180, 0, 1000);  // Suponemos que tarda 2 segundos en moverse 180 grados
 }
+
+// Función para mover el servo hacia la posición deseada
+void ServoM::moveServoTo(int targetPos, unsigned long moveTime) {
+
+  previousMillis = millis();  // Registrar el tiempo actual
+  isMoving = true;
+
+  if (targetPos > currentPos) {
+    // Si el objetivo es mayor que la posición actual, moverse a la derecha
+    this->write(speedRight);  // Mover a la derecha
+  } else if (targetPos < currentPos) {
+    // Si el objetivo es menor que la posición actual, moverse a la izquierda
+    this->write(speedLeft);   // Mover a la izquierda
+  }
+}
+
+
+void ServoM::updateServoMovement() {
+  if (isMoving) {
+    unsigned long currentMillis = millis();  // Obtener el tiempo actual
+
+    // Verificar si ya hemos alcanzado el tiempo de movimiento necesario
+    if (currentMillis - previousMillis >= moveInterval) {
+      this->write(stopSpeed);  // Detener el servo cuando se alcance el tiempo objetivo
+      currentPos = targetPos;    // Actualizar la posición actual
+      isMoving = false;  // Indicar que el movimiento ha terminado
+    }
+  }
+}
+
+void ServoM::goTo(double angle)
+{
+  if (!isMoving) {
+    targetPos = angle;
+    moveTime = estimateMoveTime(currentPos, angle);
+    moveServoTo(angle, moveTime);
+  }
+  updateServoMovement();
+}
+
+
+

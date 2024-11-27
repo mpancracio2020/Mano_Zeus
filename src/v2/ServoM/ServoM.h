@@ -20,7 +20,6 @@ class ServoM : public Servo {
     
   private:
     Servo servo_; 
-
     int pos_ = 0;
     int mode  = 0;
     const static int STEP_ = 5; /* Acceleration */
@@ -33,8 +32,8 @@ class ServoM : public Servo {
     
     /* Pulse width values */
     const static int TACEL_ = 50;
-    const static int LEFT_ = 83 + STEP_;  /* Decrease value to increase velocity */
-    const static int RIGHT_ = 103 - STEP_;  /* Increase value to increase velocity */  
+    const static int LEFT_ = 80;  /* Decrease value to increase velocity */
+    const static int RIGHT_ = 100;  /* Increase value to increase velocity */  
     const static int STOP_ = 90;
     
     /* Time to complete half loop 180º */
@@ -47,6 +46,14 @@ class ServoM : public Servo {
     void Forward();
     void Backward();
     void Stop();
+
+    void updateServoMovement();
+
+    
+
+    unsigned long estimateMoveTime(int start, int end);
+
+    void moveServoTo(int targetPos, unsigned long moveTime);
 
     double check_grades(double grades);
      
