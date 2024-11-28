@@ -16,11 +16,9 @@ class ServoM : public Servo {
     void turn(double grades);
     void goTo(double grades);
     double get_pos() { return pos_;}
-
     
   private:
     Servo servo_; 
-
     int pos_ = 0;
     int mode  = 0;
     const static int STEP_ = 5; /* Acceleration */
@@ -48,8 +46,7 @@ class ServoM : public Servo {
     void Backward();
     void Stop();
 
-    double check_grades(double grades);
-     
+    double check_grades(double grades);   
 };
 
 #endif

@@ -1,4 +1,3 @@
-
 /*###########################################
 ## Author's github:    madport             ##
 #############################################
@@ -34,7 +33,6 @@ if (! acelerated_)
   }
 }
 
-
 void ServoM::Backward()
 {
   if (! acelerated_)
@@ -48,7 +46,6 @@ void ServoM::Backward()
     }
   }
 }
-
 
 void ServoM::Stop(){ this->write(STOP_); acelerated_ = false;}
 
@@ -79,7 +76,8 @@ void ServoM::turn(double grades)
     turning_ = true;
   }
 
-  if (! acelerated_ && turning_){
+  if (! acelerated_ && turning_)
+  {
     if (mode == FORWARD) { pos_ += grades; Forward() ;}
     if (mode == BACKWARD) { pos_ -= grades; Backward(); }
   }
@@ -89,7 +87,6 @@ void ServoM::turn(double grades)
     Stop();
     target_ = 0;
     turning_ = false;
-
   }
 }
 

@@ -510,8 +510,8 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
                 image = show_hands(angles, image, color=(0, 255, 0))
                 if traces:
                     print("\n-----------------------------------------------------------------------\n")
-                # serialOut = bytes(out, 'utf-8')
-                # ser.write(serialOut)
+                serialOut = bytes(out, 'utf-8')
+                ser.write(serialOut)
             elif mode == symbols.SYMBOLS_MODE:
                 image = symbols.get_symbols(left_status, right_status)
                 image = cv2.flip(image,1)
@@ -525,8 +525,8 @@ def detect_hand(img, detector_hand, detector_arm, detector_face, pose, ser, app)
         image = show_hands(manualangles, image, color=(0, 255, 0))
         out = [str(numero).zfill(3) for numero in manualangles]
         out = arrayToString(out)
-        # serialOut = bytes(out, 'utf-8')
-        # ser.write(serialOut)
+        serialOut = bytes(out, 'utf-8')
+        ser.write(serialOut)
 
     if mode == symbols.MOVE_MODE or mode == symbols.MANUAL_MODE:
         cv2.putText(image, "ON", (290, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
@@ -574,16 +574,16 @@ def main():
     detector_arm = armDetector()
     detector_face = faceDetector()
 
-    ser = 0  # Only used to try the tracking without arduino
+    # ser = 0  # Only used to try the tracking without arduino
     
-    # ser = serial.Serial(
-    #     port=PORT,
-    #     baudrate=SERIALBEGIN,
-    #     parity=serial.PARITY_NONE,
-    #     stopbits=serial.STOPBITS_ONE,
-    #     bytesize=serial.EIGHTBITS,
-    #     timeout=1
-    # )
+    ser = serial.Serial(
+        port=PORT,
+        baudrate=SERIALBEGIN,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1
+    )
 
     app = Interface(root)
 
