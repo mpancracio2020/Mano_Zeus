@@ -48,7 +48,6 @@ int counter = 0;
 bool counterStart = false;
 String recivedString;
 
-
 void setup() 
 {
   Serial.begin(9600);
@@ -59,9 +58,7 @@ void setup()
   }
   // rarm.attach(armspins[0]);
   // larm.attach(armspins[1]);
-
 }
-
 
 void receiveData()
 {
@@ -102,12 +99,11 @@ void loop()
 {
   receiveData();
   for (int i = 0; i < NUMSERVOSHAND; i++ ) {
-    lservos[i].goTo(valsIn[i]);
-    rservos[i].goTo(valsIn[i+NUMSERVOSHAND]);
+    lservos[i].goTo(valsIn[i].toInt());
+    rservos[i].goTo(valsIn[i+NUMSERVOSHAND].toInt());
   }
   // larm.goTo(valsIn[NUMSERVOSHAND*2]);
   // rarm.goTo(valsIn[NUMSERVOSHAND*2+1]);
-
 
   // ------ left_hand positions -------
   // ------  right_hand positions -------
@@ -122,7 +118,4 @@ void loop()
   //   if (valsIn[i + 6] == 1) {rservos[i].goTo(180);} 
   //   else {rservos[i].goTo(0);}
   // }
-
-  
-  
 }

@@ -25,6 +25,7 @@ enum
   NUMINVALUES = 12,
   DIGITSPERVAL = 1,
 };
+
 int acel = 200;
 ServoM lservo1 = ServoM(acel, -180, 180);
 ServoM lservo2 = ServoM(acel, -180, 180);
@@ -46,7 +47,6 @@ int counter = 0;
 bool counterStart = false;
 String recivedString;
 
-
 void setup() 
 {
   Serial.begin(9600);
@@ -66,17 +66,16 @@ void setup()
   rservo6.attach(RPINSERVO6);
 }
 
-
 void receiveData()
 {
   while(Serial.available())
   {
-     char c = Serial.read();
+    char c = Serial.read();
 
-     if (c=='$') {counterStart = true; }
-     
-     if (counterStart)
-     {
+    if (c=='$') {counterStart = true; }
+    
+    if (counterStart)
+    {
       if (counter < stringLenght)
       {
         recivedString = String(recivedString+c);
@@ -93,7 +92,7 @@ void receiveData()
         counterStart = false;
         
       }
-     }
+    }
   }
 }
 
@@ -135,4 +134,4 @@ void loop()
 
   if (valsIn[11] == 1){rservo6.goTo(180); }
   else {rservo6.goTo(0); }
-  }
+}
