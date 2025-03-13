@@ -5,95 +5,48 @@
 #include "ServoM.h"
 #include "Arduino.h"
 
-/* States of turn */ 
-enum
-{
-  FORWARD = 0,
-  BACKWARD = 1,
-};
 
 ServoM::ServoM(float time_turn, int min_pos, int max_pos)
 {
-  timeTurn_ = time_turn;
-  min_pos_ = min_pos;
-  max_pos_ = max_pos;
+  this->write(STOP_);
 }
 
-void ServoM::Forward()
-{
-  if (!acelerated_)
-  {
-    long mills = millis();    
-    
-    for (int i = 1; i <= STEP_; i++)
-    {
-      if (millis() <= (TACEL_ * i) + timef_){ this->write(LEFT_ - i + 1); }
-      if (millis() <= (TACEL_ * STEP_) + timef_){ acelerated_ = true; }
-    }
+void ServoM::moveServoTo() {
+  if (!turning_) return; // No hacer nada si no se está moviendo
+
+  unsigned long currentMillis = millis(); // Tiempo actual
+
+  if (currentMillis - moveStartTime < moveTime) {
+    // Si todavía no hemos alcanzado el tiempo necesario, mantenemos el movimiento
+    if (targetPos > currentPos) {
+        this->write(RIGHT_); // Girar a la derecha
+    } else if (targetPos < currentPos) {
+        this->write(LEFT_); // Girar a la izquierda
+      }
+  } else {
+    // El tiempo de movimiento ha terminado, detener el servo
+    this->write(STOP_);
+    currentPos = targetPos; // Actualizar la posición actual
+    turning_ = false;       // Finalizar el movimiento
   }
 }
 
-void ServoM::Backward()
-{
-  if (!acelerated_)
-  {
-    long mills = millis();    
-    
-    for (int i = 1; i <= STEP_; i++)
-    {
-      if (millis() <= (TACEL_ * i) + timef_){ this->write(RIGHT_ + i - 1); }
-      if (millis() <= (TACEL_ * STEP_) + timef_){ acelerated_ = true; }
-    }
-  }
+unsigned long ServoM::estimateMoveTime(int start, int end) {
+  int angleDifference = abs(end - start);
+  return map(angleDifference, 0, 180, 0, 500); // Suponemos que tarda 500 ms en moverse 180 grados
 }
 
-void ServoM::Stop(){ this->write(STOP_); acelerated_ = false; }
-
-double ServoM::check_grades(double grades)
-{
-   /* Limit forward*/
-   if (pos_ + grades > max_pos_){ grades = max_pos_ - pos_; }
-  
-   /* Limit backward and changes mode */
-   if (grades < 0 && (pos_ + grades) < min_pos_){ grades = min_pos_ - pos_; }  
-
-   return grades;
+void ServoM::turn() {
+  moveTime = estimateMoveTime(currentPos, targetPos); // Calcula el tiempo necesario para el movimiento
+  turning_ = true;
+  moveServoTo();                                   // Activa el estado de movimiento
 }
 
-void ServoM::turn(double grades)
-{
-  long actual_millis = millis();
-  grades = check_grades(grades);
-  if (grades > 0) { mode = FORWARD; }
-  if (grades < 0) { mode = BACKWARD; grades *= -1; }
-
-  if (!turning_ && grades != 0)
-  {
-    int mode = FORWARD;
-    time0_ = millis();
-    timef_ = ((grades / 180.0) * timeTurn_) + time0_;
-    target_ = grades;
-    turning_ = true;
+void ServoM::goTo(double grades) {
+  if (!turning_) {
+    targetPos = grades;
+    moveStartTime = millis();
   }
+  turn(); // Inicia el movimiento hacia la posición objetivo
 
-  if (!acelerated_ && turning_)
-  {
-    if (mode == FORWARD) { pos_ += grades; Forward(); }
-    if (mode == BACKWARD) { pos_ -= grades; Backward(); }
-  }
-  
-  if (timef_ <= actual_millis)
-  {
-    Stop();
-    target_ = 0;
-    turning_ = false;
-  }
-}
-
-void ServoM::goTo(double grades)
-{
-  grades -= pos_;
-  if (turning_){grades = 0;}
-  
-  turn(grades);
 }

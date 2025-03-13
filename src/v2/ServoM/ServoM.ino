@@ -89,7 +89,6 @@ void receiveData()
         recivedString = "";
         counter = 0;
         counterStart = false;
-        
       }
     }
   }
@@ -98,10 +97,10 @@ void receiveData()
 void loop() 
 {
   receiveData();
-  for (int i = 0; i < NUMSERVOSHAND; i++ ) {
-    lservos[i].goTo(valsIn[i].toInt());
-    rservos[i].goTo(valsIn[i+NUMSERVOSHAND].toInt());
-  }
+  // for (int i = 0; i < NUMSERVOSHAND; i++ ) {
+  //   lservos[i].goTo(valsIn[i]);
+  //   rservos[i].goTo(valsIn[i+NUMSERVOSHAND]);
+  // }
   // larm.goTo(valsIn[NUMSERVOSHAND*2]);
   // rarm.goTo(valsIn[NUMSERVOSHAND*2+1]);
 
@@ -111,11 +110,11 @@ void loop()
   // if (valsIn[1] == 1) {lservos[1].goTo(180);} 
   // else {lservos[1].goTo(1);}
 
-  // for (int i = 0; i < NUMSERVOSHAND; ++i) {
-  //   if (valsIn[i] == 1) {lservos[i].goTo(180);} 
-  //   else if (valsIn[i] == 0) {lservos[i].goTo(0);}
+  for (int i = 0; i < NUMSERVOSHAND; ++i) {
+    if (valsIn[i] >= 90) {lservos[i].goTo(180);} 
+    else {lservos[i].goTo(0);}
 
-  //   if (valsIn[i + 6] == 1) {rservos[i].goTo(180);} 
-  //   else {rservos[i].goTo(0);}
-  // }
+    if (valsIn[i + 6] >= 90) {rservos[i].goTo(180);} 
+    else {rservos[i].goTo(0);}
+  }
 }
